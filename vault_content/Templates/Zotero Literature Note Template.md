@@ -1,6 +1,10 @@
 <%*
-// Prompt the user for a citation key, showing suggestions from the "Reference Notes" folder.
+//---- CHANGE FOLDER NAMES HERE IF NECESSARY:
 const referenceNotesFolder = "Reference Notes";
+const literatureNotesDefaultFolder = "Literature Notes";
+//----------------------------------------------------
+
+// Prompt the user for a citation key, showing suggestions from the reference notes folder.
 const referenceNotes = await app.vault.getFiles()
   .filter(f => f.path.startsWith(referenceNotesFolder) && f.extension === "md");
 
@@ -27,9 +31,14 @@ if (!citationKey) {
 }
 
 // Prompt the user for a folder to save the literature note, with a default suggestion.
-const defaultFolder = "03 Literature Notes";
-const folderChoices = [defaultFolder, ...new Set(app.vault.getAllLoadedFiles().map(f => f.parent?.path).filter(Boolean))];
-const selectedFolder = await tp.system.suggester(folderChoices, folderChoices) || defaultFolder;
+const folderChoices = [literatureNotesDefaultFolder, ...new Set(app.vault.getAllLoadedFiles().map(f => f.parent?.path).filter(Boolean))];
+const selectedFolder = await tp.system.suggester(folderChoices, folderChoices);
+// Ensure the literature notes folder exists, create it if it doesn't.
+const selectedFolderExists = app.vault.getAbstractFileByPath(selectedFolder);
+if (!selectedFolderExists) {
+	await app.vault.createFolder(selectedFolder);
+}
+
 
 // Construct the path for the new literature note with @.
 const filePath = `${selectedFolder}/@${citationKey}.md`;
